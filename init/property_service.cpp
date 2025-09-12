@@ -859,6 +859,14 @@ static void update_sys_usb_config() {
     }
 }
 
+static void update_blur_config() {
+    const bool blurEnabled = android::base::GetBoolProperty("ro.custom.blur.enable", true);
+    const char* blurValue = blurEnabled ? "1" : "0";
+
+    std::string error;
+    PropertySetNoSocket("ro.surface_flinger.supports_background_blur", blurValue, &error);
+}
+
 static void load_override_properties() {
     if (ALLOW_LOCAL_PROP_OVERRIDE) {
         std::map<std::string, std::string> properties;
@@ -1259,6 +1267,10 @@ void PropertyLoadBootDefaults() {
     weaken_prop_override_security = false;
 
     update_sys_usb_config();
+
+    // Update blur setup
+    update_blur_config();
+
 }
 
 void PropertyLoadDerivedDefaults() {
@@ -1420,27 +1432,41 @@ static void SetSafetyNetProps() {
     InitPropertySet("ro.boot.flash.locked", "1");
     InitPropertySet("ro.boot.vbmeta.device_state", "locked");
     InitPropertySet("ro.boot.verifiedbootstate", "green");
+    InitPropertySet("ro.boot.flash.locked", "1");
+    InitPropertySet("ro.boot.selinux", "enforcing");
     InitPropertySet("ro.boot.veritymode", "enforcing");
     InitPropertySet("ro.boot.warranty_bit", "0");
     InitPropertySet("ro.warranty_bit", "0");
     InitPropertySet("ro.debuggable", "0");
+    InitPropertySet("ro.force.debuggable", "0");
+    InitPropertySet("ro.adb.secure", "1");
     InitPropertySet("ro.secure", "1");
     InitPropertySet("ro.bootimage.build.type", "user");
     InitPropertySet("ro.build.type", "user");
-    InitPropertySet("ro.build.keys", "release-keys");
-    InitPropertySet("ro.build.tags", "release-keys");
-    InitPropertySet("ro.system.build.tags", "release-keys");
-    InitPropertySet("ro.product.build.type", "user");
-    InitPropertySet("ro.odm.build.type", "user");
     InitPropertySet("ro.system.build.type", "user");
     InitPropertySet("ro.system_ext.build.type", "user");
     InitPropertySet("ro.vendor.build.type", "user");
     InitPropertySet("ro.vendor_dlkm.build.type", "user");
+    InitPropertySet("ro.product.build.type", "user");
+    InitPropertySet("ro.odm.build.type", "user");
+    InitPropertySet("ro.build.keys", "release-keys");
+    InitPropertySet("ro.build.tags", "release-keys");
+    InitPropertySet("ro.bootimage.build.tags", "release-keys");
+    InitPropertySet("ro.odm.build.tags", "release-keys");
+    InitPropertySet("ro.product.build.tags", "release-keys");
+    InitPropertySet("ro.system.build.tags", "release-keys");
+    InitPropertySet("ro.system_ext.build.tags", "release-keys");
+    InitPropertySet("ro.vendor.build.tags", "release-keys");
+    InitPropertySet("ro.vendor_dlkm.build.tags", "release-keys");
     InitPropertySet("ro.vendor.boot.warranty_bit", "0");
     InitPropertySet("ro.vendor.warranty_bit", "0");
     InitPropertySet("vendor.boot.vbmeta.device_state", "locked");
     InitPropertySet("vendor.boot.verifiedbootstate", "green");
     InitPropertySet("oplusboot.verifiedbootstate", "green");
+    InitPropertySet("sys.oem_unlock_allowed", "0");
+#ifdef SPOOF_FIRST_API_LEVEL_32
+    InitPropertySet("ro.product.first_api_level", "32");
+#endif
 }
 
 void PropertyInit() {

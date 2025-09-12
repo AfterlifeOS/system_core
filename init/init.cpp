@@ -1096,8 +1096,9 @@ int SecondStageMain(int argc, char** argv) {
     if (false) DumpState();
 
     // Make the GSI status available before scripts start running.
-    auto is_running = android::gsi::IsGsiRunning() ? "1" : "0";
-    SetProperty(gsi::kGsiBootedProp, is_running);
+    bool is_running = android::gsi::IsGsiRunning() ||
+                      !GetProperty("ro.boot.use_tmpfs_userdata", "").empty();
+    SetProperty(gsi::kGsiBootedProp, is_running ? "1" : "0");
     auto is_installed = android::gsi::IsGsiInstalled() ? "1" : "0";
     SetProperty(gsi::kGsiInstalledProp, is_installed);
     if (android::gsi::IsGsiRunning()) {
@@ -1118,6 +1119,9 @@ int SecondStageMain(int argc, char** argv) {
     am.QueueBuiltinAction(SetupCgroupsAction, "SetupCgroups");
     am.QueueBuiltinAction(SetKptrRestrictAction, "SetKptrRestrict");
     am.QueueBuiltinAction(TestPerfEventSelinuxAction, "TestPerfEventSelinux");
+    am.QueueEventTrigger("early-init-begin");
+    am.QueueEventTrigger("early-init-middle");
+    am.QueueEventTrigger("early-init-end");
     am.QueueEventTrigger("early-init");
     am.QueueBuiltinAction(ConnectEarlyStageSnapuserdAction, "ConnectEarlyStageSnapuserd");
 
@@ -1144,6 +1148,8 @@ int SecondStageMain(int argc, char** argv) {
     std::string bootmode = GetProperty("ro.bootmode", "");
     if (bootmode == "charger") {
         am.QueueEventTrigger("charger");
+    } else if (bootmode == "console") {
+        am.QueueEventTrigger("console");
     } else {
         am.QueueEventTrigger("late-init");
     }

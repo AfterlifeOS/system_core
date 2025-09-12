@@ -1,11 +1,12 @@
-/*
- * Copyright (C) 2018 The Android Open Source Project
+/* libs/diskconfig/dump_diskconfig.c
+ *
+ * Copyright 2008, The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,23 +15,29 @@
  * limitations under the License.
  */
 
-#pragma once
+#define LOG_TAG "dump_diskconfig"
 
-#include "uevent.h"
+#include <stdio.h>
 
-namespace android {
-namespace init {
+#include <log/log.h>
 
-class UeventHandler {
-  public:
-    virtual ~UeventHandler() = default;
+#include "diskconfig.h"
 
-    virtual void HandleUevent(const Uevent& uevent) = 0;
+int
+main(int argc, char *argv[])
+{
+    struct disk_info *dinfo;
 
-    virtual bool IsUeventDeferred(const Uevent& uevent) { return false; }
+    if (argc < 2) {
+        ALOGE("usage: %s <conf file>", argv[0]);
+        return 1;
+    }
 
-    virtual void ColdbootDone() {}
-};
+    if (!(dinfo = load_diskconfig(argv[1], NULL)))
+        return 1;
 
-}  // namespace init
-}  // namespace android
+    dump_disk_config(dinfo);
+
+    return 0;
+}
+
